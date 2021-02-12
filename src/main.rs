@@ -1,6 +1,9 @@
 use std::fs::File;
-use std::io::prelude::*;
 use std::path::Path;
+use std::io::{self, Write};
+
+
+mod vec;
 
 fn main() {
     // Image
@@ -19,8 +22,9 @@ fn main() {
 
     let mut outimg: String = String::from(format!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT));
 
-
     for j in (0..IMAGE_HEIGHT).rev() {
+        print!("\rScanlines Remaining: {}", j);
+        io::stdout().flush().unwrap();
         for i in 0..IMAGE_WIDTH {
             let r = (i as f64) / ((IMAGE_WIDTH - 1) as f64);
             let g = (j as f64) / ((IMAGE_HEIGHT - 1) as f64);
@@ -33,6 +37,8 @@ fn main() {
             outimg = format!("{}{} {} {}\n",outimg, ir, ig, ib);
         }
     }
+
+    print!("\nDone Rendering\n");
 
     match file.write_all(outimg.as_bytes()) {
         Err(why) => panic!("Could not create {}: {}", display, why),
