@@ -4,6 +4,7 @@ use std::io::{self, Write};
 
 
 mod vec;
+mod color;
 
 fn main() {
     // Image
@@ -23,18 +24,17 @@ fn main() {
     let mut outimg: String = String::from(format!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT));
 
     for j in (0..IMAGE_HEIGHT).rev() {
-        print!("\rScanlines Remaining: {}", j);
-        io::stdout().flush().unwrap();
         for i in 0..IMAGE_WIDTH {
+            print!("\rj: {}\ti: {}", j, i);
+            io::stdout().flush().unwrap();
             let r = (i as f64) / ((IMAGE_WIDTH - 1) as f64);
             let g = (j as f64) / ((IMAGE_HEIGHT - 1) as f64);
             let b = 0.25;
 
-            let ir = (255.999 * r) as i64;
-            let ig = (255.999 * g) as i64;
-            let ib = (255.999 * b) as i64;
+            let c: vec::Color = vec::Color::new(r, g, b);
+            let cstring = color::write_color(c);
 
-            outimg = format!("{}{} {} {}\n",outimg, ir, ig, ib);
+            outimg = format!("{}{}",outimg, cstring);
         }
     }
 
