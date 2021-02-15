@@ -2,12 +2,27 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{self, Write, stdin, stdout, Read};
 
+use ray::Ray;
+use vec::{Color, Point3, Vec3};
+
 
 mod vec;
 mod color;
 mod ray;
 
+fn hit_sphere(center: Point3, radius: f64, r: Ray<f64>) -> bool {
+    let oc: Vec3<f64> = r.origin - center;
+    let a = r.direction.dot(r.direction);
+    let b = 2.0 * oc.dot(r.direction);
+    let c = oc.dot(oc) - radius * radius;
+    let discrim = b * b - 4.0 * a * c;
+    return discrim > 0.0;
+}
+
 fn ray_color(r: ray::Ray<f64>) -> vec::Color {
+    if hit_sphere(Point3::new(0.0,0.0,-1.0), 0.5, r) {
+        return Color::new(1.0, 0.0, 0.0);
+    }
     let unit_direction: vec::Vec3<f64> = r.direction.unit_vector();
     let t = 0.5 * (unit_direction.y + 1.0);
     return (1.0 - t) * vec::Color::new(1.0, 1.0, 1.0) + t * vec::Color::new(0.5, 0.7, 1.0);
