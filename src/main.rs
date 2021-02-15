@@ -1,4 +1,4 @@
-use std::{f64::INFINITY, fs::File};
+use std::fs::File;
 use std::path::Path;
 use std::io::{self, Write, stdin, stdout, Read};
 
@@ -15,11 +15,12 @@ mod ray;
 mod hittable;
 mod hittable_list;
 mod sphere;
+mod utils;
 
 fn ray_color(r: ray::Ray<f64>, world:&impl Hittable) -> vec::Color {
     let mut rec: HitRecord = HitRecord::new();
 
-    if world.hit(r, 0.0, INFINITY, &mut rec) {
+    if world.hit(r, 0.0, utils::INFINITY, &mut rec) {
          let ret = 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
          return ret;
     }
