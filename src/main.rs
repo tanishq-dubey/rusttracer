@@ -2,12 +2,12 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{self, Write, stdin, stdout, Read};
 
+use vec::{Color, Vec3};
 use ray::Ray;
-use vec::{Color, Point3, Vec3};
 use hittable::{HitRecord, Hittable};
 use hittable_list::HittableList;
 use sphere::Sphere;
-
+use camera::Camera;
 
 mod vec;
 mod color;
@@ -16,6 +16,7 @@ mod hittable;
 mod hittable_list;
 mod sphere;
 mod utils;
+mod camera;
 
 fn ray_color(r: ray::Ray<f64>, world:&impl Hittable) -> vec::Color {
     let mut rec: HitRecord = HitRecord::new();
@@ -42,6 +43,7 @@ fn main() {
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: i64 = 400;
     const IMAGE_HEIGHT: i64 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i64;
+    const SAMPLES_PER_PIXEL: i64 = 100;
 
     // World
     let mut world: HittableList = HittableList::new();
@@ -52,14 +54,7 @@ fn main() {
 
 
     // Camera
-    let viewport_height: f64 = 2.0;
-    let viewport_wdith: f64 = ASPECT_RATIO * viewport_height;
-    let focal_length: f64 = 1.0;
-
-    let origin = vec::Point3::new(0.0, 0.0, 0.0);
-    let horizontal = vec::Vec3::new(viewport_wdith, 0.0, 0.0);
-    let vertical = vec::Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 - vec::Vec3::new(0.0, 0.0, focal_length);
+    let cam: Camera = Camera::new();
 
     // File Start
     let path = Path::new("output.ppm");
@@ -77,13 +72,16 @@ fn main() {
         for i in 0..IMAGE_WIDTH {
             print!("\rj: {}\ti: {}", j, i);
             io::stdout().flush().unwrap();
-            let u = (i as f64) / ((IMAGE_WIDTH - 1) as f64);
-            let v = (j as f64) / ((IMAGE_HEIGHT - 1) as f64);
 
-            let r = ray::Ray::new(origin, lower_left_corner + u * horizontal + v * vertical - origin);
-            let c = ray_color(r, &world);
+            let mut color: Color = Color::new(0.0, 0.0, 0.0);
+            for s in 0..SAMPLES_PER_PIXEL {
+                let u = (i as f64 + utils::random_f64()) / ((IMAGE_WIDTH - 1) as f64);
+                let v = (j as f64 + utils::random_f64()) / ((IMAGE_HEIGHT - 1) as f64);
+                let r = cam.get_ray(u, v);
+                color = color + ray_color(r, &world);
+            }
 
-            let cstring = color::write_color(c);
+            let cstring = color::write_color(color, SAMPLES_PER_PIXEL);
             outimg = format!("{}{}",outimg, cstring);
         }
     }
