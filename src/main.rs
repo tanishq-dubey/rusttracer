@@ -18,12 +18,16 @@ mod sphere;
 mod utils;
 mod camera;
 
-fn ray_color(r: ray::Ray<f64>, world:&impl Hittable) -> vec::Color {
+fn ray_color(r: ray::Ray<f64>, world:&impl Hittable, depth: i64) -> vec::Color {
     let mut rec: HitRecord = HitRecord::new();
 
-    if world.hit(r, 0.0, utils::INFINITY, &mut rec) {
-        let target: Point3 = rec.p + rec.normal + Vec3::new_random_in_unit_sphere();
-        return 0.5 * ray_color(Ray::new(rec.p, target - rec.p), world);
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
+    if world.hit(r, 0.001, utils::INFINITY, &mut rec) {
+        let target: Point3 = rec.p + Vec3::new_random_in_hemisphere(rec.normal);
+        return 0.5 * ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1);
     }
 
     let unit_direction: vec::Vec3<f64> = r.direction.unit_vector();
@@ -44,6 +48,7 @@ fn main() {
     const IMAGE_WIDTH: i64 = 400;
     const IMAGE_HEIGHT: i64 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i64;
     const SAMPLES_PER_PIXEL: i64 = 100;
+    const MAX_DEPTH: i64 = 50;
 
     // World
     let mut world: HittableList = HittableList::new();
@@ -74,11 +79,11 @@ fn main() {
             io::stdout().flush().unwrap();
 
             let mut color: Color = Color::new(0.0, 0.0, 0.0);
-            for s in 0..SAMPLES_PER_PIXEL {
+            for _ in 0..SAMPLES_PER_PIXEL {
                 let u = (i as f64 + utils::random_f64()) / ((IMAGE_WIDTH - 1) as f64);
                 let v = (j as f64 + utils::random_f64()) / ((IMAGE_HEIGHT - 1) as f64);
                 let r = cam.get_ray(u, v);
-                color = color + ray_color(r, &world);
+                color = color + ray_color(r, &world, MAX_DEPTH);
             }
 
             let cstring = color::write_color(color, SAMPLES_PER_PIXEL);

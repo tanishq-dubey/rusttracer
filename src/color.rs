@@ -6,10 +6,10 @@ pub fn write_color(color: vec::Color, samples: i64) -> String {
     let mut g = color.y;
     let mut b = color.z;
 
-    let scale = 1.0 / samples as f64;
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    let scale = 1.0 / (samples) as f64;
+    r = (scale * r).sqrt();
+    g = (scale * g).sqrt();
+    b = (scale * b).sqrt();
 
     return format!("{} {} {}\n", 
                    (256.0 * utils::clamp(r, 0.0, 0.999)) as i64,
