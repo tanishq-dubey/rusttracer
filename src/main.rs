@@ -2,7 +2,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{self, Write, stdin, stdout, Read};
 
-use vec::{Color, Vec3};
+use vec::{Color, Point3, Vec3};
 use ray::Ray;
 use hittable::{HitRecord, Hittable};
 use hittable_list::HittableList;
@@ -22,8 +22,8 @@ fn ray_color(r: ray::Ray<f64>, world:&impl Hittable) -> vec::Color {
     let mut rec: HitRecord = HitRecord::new();
 
     if world.hit(r, 0.0, utils::INFINITY, &mut rec) {
-         let ret = 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
-         return ret;
+        let target: Point3 = rec.p + rec.normal + Vec3::new_random_in_unit_sphere();
+        return 0.5 * ray_color(Ray::new(rec.p, target - rec.p), world);
     }
 
     let unit_direction: vec::Vec3<f64> = r.direction.unit_vector();
